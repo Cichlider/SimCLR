@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.DS_Store
+
+datasets_local/
+outputs/
+
+.ipynb_checkpoints/
+
+*.pth.tar
+*.log

@@ -1,0 +1,41 @@
+当前统一主实验参数（augmentation ablation, larger run）
+
+dataset_name = cifar10
+arch = resnet18
+out_dim = 128
+epochs = 30
+batch_size = 256
+temperature = 0.07
+seed = 0
+n_views = 2
+lr = 0.0003
+weight_decay = 1e-4
+workers = 0
+data = ./datasets_local
+max_samples = 5000
+
+重点比较的增强方案
+
+baseline
+no_color_jitter
+no_grayscale
+no_blur
+
+运行命令
+
+MPLCONFIGDIR=/private/tmp/mpl python3 run_augmentation_suite.py \
+  --data ./datasets_local \
+  --dataset-name cifar10 \
+  -a resnet18 \
+  --epochs 30 \
+  -b 256 \
+  --temperature 0.07 \
+  --seed 0 \
+  --n-views 2 \
+  --lr 0.0003 \
+  --wd 1e-4 \
+  -j 0 \
+  --disable-cuda \
+  --max-samples 5000 \
+  --augmentations baseline no_color_jitter no_grayscale no_blur \
+  --suite-name cifar10_resnet18_aug_ablation_e30_subset5000
