@@ -6,7 +6,15 @@ import torch
 import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
 from tqdm import tqdm
-from utils import save_config_file, accuracy, save_checkpoint, save_json, save_metrics_csv, load_metrics_csv
+from utils import (
+    save_config_file,
+    accuracy,
+    save_checkpoint,
+    save_json,
+    save_metrics_csv,
+    load_metrics_csv,
+    save_training_curves,
+)
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -204,6 +212,10 @@ class SimCLR(object):
         logging.info(f"Model checkpoint and metadata has been saved at {self.writer.log_dir}.")
 
         save_metrics_csv(epoch_metrics, metrics_csv_path)
+        training_curves_path = save_training_curves(
+            epoch_metrics,
+            os.path.join(self.writer.log_dir, 'training_curves.png'),
+        )
 
         duration_seconds = round(time.time() - start_time, 2)
         summary = {
@@ -220,6 +232,7 @@ class SimCLR(object):
             'checkpoint_path': checkpoint_path,
             'metrics_csv_path': metrics_csv_path,
             'training_log_path': self.log_path,
+            'training_curves_path': training_curves_path,
             'final_loss': round(last_loss, 6),
             'final_top1': round(last_top1, 4),
             'final_top5': round(last_top5, 4),

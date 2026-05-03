@@ -56,4 +56,4 @@ If GPU is unavailable, add:
 
 - The dataset will download automatically into `./datasets_local`.
 - Results will be written to `outputs/augmentation_suite/`.
-- `data.txt` currently records your latest experiment settings, but its epoch count is still `30`, not `100`.
+- Each run also writes `training_curves.png`, which contains `top1/top5`, `learning rate`, and `loss` against epoch.
