@@ -1,0 +1,12 @@
+{
+  "checkpoint": "outputs/augmentation_suite/cifar10_resnet18_no_color_jitter_e100_subset5000_ckpt10/checkpoint_0100.pth.tar",
+  "dataset_name": "cifar10",
+  "arch": "resnet18",
+  "feature_dim": 512,
+  "train_samples": 5000,
+  "test_samples": 10000,
+  "train_accuracy": 71.48,
+  "test_accuracy": 42.07,
+  "test_top5_accuracy": 88.47,
+  "duration_seconds": 154.89
+}

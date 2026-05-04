@@ -11,11 +11,26 @@ except ImportError:  # pragma: no cover
     plt = None
 
 
+LINEAR_EVAL_EPOCH = 100
+
+DEFAULT_RUN_DIRS = [
+    ('baseline', 'cifar10_resnet18_baseline_e100_subset5000_ckpt10'),
+    ('no_blur', 'cifar10_resnet18_no_blur_e100_subset5000_ckpt10'),
+    ('no_color_jitter', 'cifar10_resnet18_no_color_jitter_e100_subset5000_ckpt10'),
+    ('no_grayscale', 'cifar10_resnet18_no_grayscale_e100_subset5000_ckpt10'),
+]
+
 DEFAULT_RUNS = [
-    ('baseline', 'outputs/augmentation_suite/cifar10_resnet18_aug_ablation_e10_subset5000_baseline/checkpoint_0010.pth.tar'),
-    ('no_blur', 'outputs/augmentation_suite/cifar10_resnet18_aug_ablation_e10_subset5000_no_blur/checkpoint_0010.pth.tar'),
-    ('no_color_jitter', 'outputs/augmentation_suite/cifar10_resnet18_aug_ablation_e10_subset5000_no_color_jitter/checkpoint_0010.pth.tar'),
-    ('no_grayscale', 'outputs/augmentation_suite/cifar10_resnet18_aug_ablation_e10_subset5000_no_grayscale/checkpoint_0010.pth.tar'),
+    (
+        run_name,
+        os.path.join(
+            'outputs',
+            'augmentation_suite',
+            experiment_name,
+            f'checkpoint_{LINEAR_EVAL_EPOCH:04d}.pth.tar',
+        ),
+    )
+    for run_name, experiment_name in DEFAULT_RUN_DIRS
 ]
 
 
@@ -30,7 +45,10 @@ def parse_args():
     parser.add_argument('--max-test-samples', default=None, type=int)
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--output-dir', default='outputs/linear_eval')
-    parser.add_argument('--suite-name', default='cifar10_resnet18_linear_eval')
+    parser.add_argument(
+        '--suite-name',
+        default=f'cifar10_resnet18_linear_eval_e{LINEAR_EVAL_EPOCH}_subset5000',
+    )
     return parser.parse_args()
 
 
@@ -66,6 +84,7 @@ def write_outputs(args, summaries):
     csv_path = os.path.join(args.output_dir, f'{args.suite_name}_summary.csv')
     md_path = os.path.join(args.output_dir, f'{args.suite_name}_summary.md')
     plot_path = os.path.join(args.output_dir, f'{args.suite_name}_test_accuracy.png')
+    visualization_path = os.path.join(args.output_dir, f'{args.suite_name}_visualization.png')
 
     rows = []
     for summary in summaries:
@@ -121,10 +140,41 @@ def write_outputs(args, summaries):
                      ha='center', va='bottom', fontsize=9)
         plt.savefig(plot_path, dpi=200)
         plt.close()
+
+        top5_scores = [row['test_top5_accuracy'] for row in rows]
+        durations = [row['duration_seconds'] for row in rows]
+        fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
+
+        bar_groups = [
+            ('Test Accuracy', test_accuracies, '#2A9D8F'),
+            ('Top-5 Accuracy', top5_scores, '#E9C46A'),
+            ('Duration (s)', durations, '#264653'),
+        ]
+        for axis, (title, values, color) in zip(axes, bar_groups):
+            bars = axis.bar(run_names, values, color=color)
+            axis.set_title(title)
+            axis.tick_params(axis='x', rotation=30)
+            for label in axis.get_xticklabels():
+                label.set_horizontalalignment('right')
+            for bar, value in zip(bars, values):
+                axis.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    bar.get_height(),
+                    f'{value:.2f}',
+                    ha='center',
+                    va='bottom',
+                    fontsize=9,
+                )
+
+        fig.suptitle(args.suite_name)
+        fig.tight_layout()
+        fig.savefig(visualization_path, dpi=200)
+        plt.close(fig)
     else:
         plot_path = None
+        visualization_path = None
 
-    return csv_path, md_path, plot_path
+    return csv_path, md_path, plot_path, visualization_path
 
 
 def main():
@@ -134,11 +184,13 @@ def main():
         print(f'Running linear evaluation for: {run_name}', flush=True)
         summaries.append(run_single(args, run_name, checkpoint))
 
-    csv_path, md_path, plot_path = write_outputs(args, summaries)
+    csv_path, md_path, plot_path, visualization_path = write_outputs(args, summaries)
     print(f'Linear eval summary CSV: {csv_path}')
     print(f'Linear eval summary Markdown: {md_path}')
     if plot_path is not None:
         print(f'Linear eval plot: {plot_path}')
+    if visualization_path is not None:
+        print(f'Linear eval visualization: {visualization_path}')
 
 
 if __name__ == '__main__':

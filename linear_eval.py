@@ -25,6 +25,9 @@ def parse_args():
     parser.add_argument('--max-test-samples', default=None, type=int)
     parser.add_argument('--seed', default=0, type=int)
     parser.add_argument('--output-dir', required=True, help='directory for evaluation outputs')
+    parser.add_argument('--classifier-max-iter', default=200, type=int)
+    parser.add_argument('--classifier-solver', default='liblinear',
+                        choices=['liblinear', 'lbfgs', 'saga', 'newton-cg', 'newton-cholesky', 'sag'])
     return parser.parse_args()
 
 
@@ -127,8 +130,8 @@ def main():
 
     classifier = LogisticRegression(
         random_state=args.seed,
-        max_iter=1000,
-        solver='lbfgs',
+        max_iter=args.classifier_max_iter,
+        solver=args.classifier_solver,
         multi_class='auto',
         n_jobs=-1,
     )
